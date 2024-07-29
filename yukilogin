@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URLからHTMLを取得</title>
+</head>
+<body>
+    <h1>テスト</h1>
+    <div id="external-content"></div>
+
+    <script>
+        const url = 'https://gitlab.com/mpdpa/true/-/raw/main/login.html?ref_type=heads';
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('ネットワークの応答が正常ではありません: ' + response.statusText);
+                }
+                return response.text(); // テキストデータとして取得
+            })
+            .then(html => {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+
+                const scripts = tempDiv.querySelectorAll('script');
+                scripts.forEach(script => {
+                    const newScript = document.createElement('script');
+                    if (script.src) {
+                        newScript.src = script.src;
+                    } else {
+                        newScript.textContent = script.textContent;
+                    }
+                    document.body.appendChild(newScript);
+                });
+                
+                const content = tempDiv.querySelectorAll('body > *:not(script)');
+                const externalContent = document.getElementById('external-content');
+                content.forEach(node => {
+                    externalContent.appendChild(node.cloneNode(true));
+                });
+            })
+            .catch(error => console.error('データ取得エラー:', error));
+    </script>
+</body>
+</html>
